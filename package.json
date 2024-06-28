@@ -1,7 +1,7 @@
 {
   "name": "queso",
   "displayName": "Queso | Holey triangle apps",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "amber williams <https://github.com/amber-williams>",
   "description": "Queso - a browser extension that works within the Holey triangle apps ecosystem.",
   "type": "module",

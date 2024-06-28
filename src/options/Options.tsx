@@ -4,21 +4,22 @@ import { useEffect, useState } from 'react'
 import * as storage from './../util/storage'
 
 export const Options = () => {
-  const [apiToken, setApiToken] = useState<string | undefined>(import.meta.env.VITE_API_TOKEN)
-  const [apiLink, setApiLink] = useState<string | undefined>(import.meta.env.VITE_API_SERVER)
+  const [apiToken, setApiToken] = useState<string | undefined>()
+  const [apiLink, setApiLink] = useState<string | undefined>()
+  const [readingUI, setReadingsUi] = useState<string | undefined>()
 
   useEffect(() => {
-    if (import.meta.env.VITE_API_TOKEN && import.meta.env.VITE_API_SERVER) {
+    if (import.meta.env.VITE_READINGS_API_TOKEN && import.meta.env.VITE_READINGS_API_SERVER) {
       // Useful to persist for development mode
-      setApiToken(import.meta.env.VITE_API_TOKEN)
-      setApiLink(import.meta.env.VITE_API_SERVER)
+      setApiToken(import.meta.env.VITE_READINGS_API_TOKEN)
+      setApiLink(import.meta.env.VITE_READINGS_API_SERVER)
     } else {
-      storage.getKey('apiToken').then((token) => {
+      storage.getKey('readingsApiToken').then((token) => {
         if (token) {
           setApiToken(token as string)
         }
       })
-      storage.getKey('apiLink').then((link) => {
+      storage.getKey('readingsApi').then((link) => {
         if (link) {
           setApiLink(link as string)
         }
@@ -26,9 +27,23 @@ export const Options = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if (import.meta.env.VITE_READINGS_UI_SERVER) {
+      // Useful to persist for development mode
+      setReadingsUi(import.meta.env.VITE_READINGS_UI_SERVER)
+    } else {
+      storage.getKey('readingsUi').then((token) => {
+        if (token) {
+          setReadingsUi(token as string)
+        }
+      })
+    }
+  }, [])
+
   const onSave = () => {
-    storage.saveKey('apiToken', apiToken)
-    storage.saveKey('apiLink', apiLink)
+    storage.saveKey('readingsApiToken', apiToken)
+    storage.saveKey('readingsApi', apiLink)
+    storage.saveKey('readingsUi', readingUI)
   }
 
   return (
@@ -81,7 +96,7 @@ export const Options = () => {
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={apiToken}
-                    label="API server token"
+                    label="Readings API server token"
                     variant="outlined"
                     fullWidth
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
@@ -93,11 +108,22 @@ export const Options = () => {
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={apiLink}
-                    label="API server link"
+                    label="Readings API server link"
                     variant="outlined"
                     fullWidth
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       setApiLink(event.target.value)
+                    }
+                  />
+                </Core.Grid>
+                <Core.Grid xs={12} item>
+                  <Core.TextField
+                    value={readingUI}
+                    label="Readings UI link"
+                    variant="outlined"
+                    fullWidth
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setReadingsUi(event.target.value)
                     }
                   />
                 </Core.Grid>

@@ -2,6 +2,7 @@ import { Background, Core, Icons, Theme } from '@mb3r/component-library'
 import { useEffect, useState } from 'react'
 
 import * as storage from './../util/storage'
+import SidePanelMoreMenu, { useSidePanelMoreMenu } from './SidePanelMoreMenu'
 
 export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   const [refreshHash, setRefreshHash] = useState(0)
@@ -11,6 +12,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   const [tagString, setTagString] = useState<string | undefined>(undefined)
   const [error, setError] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
+  const moreMenu = useSidePanelMoreMenu()
 
   useEffect(() => {
     setError(false)
@@ -45,10 +47,15 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
       setError(false)
     }
 
-    storage.getKey('apiToken').then((token) => {
+    let estimatedTime: number | undefined = undefined
+    if (pageReadingTime !== undefined && isNaN(Number(pageReadingTime)) === false) {
+      estimatedTime = Number(pageReadingTime)
+    }
+
+    storage.getKey('readingsApiToken').then((token) => {
       // TODO: handle if API variables aren't found & ugly callback logic
 
-      storage.getKey('apiLink').then((link) => {
+      storage.getKey('readingsApi').then((link) => {
         fetch(link as string, {
           method: 'POST',
           headers: {
@@ -57,8 +64,8 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
           },
           body: JSON.stringify({
             title: pageTitle,
-            uri: pageLink,
-            readingTime: pageReadingTime,
+            link: pageLink,
+            estimated_time: estimatedTime,
             tags: tagString ? tagString.split(',').map((tag) => tag.trim()) : [],
           }),
         })
@@ -109,24 +116,39 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                 letterSpacing: '.1rem',
                 color: '#F8FAF6',
                 textDecoration: 'none',
-                mx: 3,
-                my: 4,
+                mx: 2,
+                mt: 2,
+                mb: 3,
                 fontSize: '1rem',
               }}
             >
-              Bookmark for reading
+              QUESO
             </Core.Typography>
             <Core.Button
               variant="outlined"
-              onClick={() => setRefreshHash(refreshHash + 1)}
+              onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                moreMenu.setAnchorEl(event.currentTarget)
+              }}
               sx={{
                 position: 'absolute',
                 top: 8,
                 right: 16,
+                p: 1,
+                minWidth: '0',
+                borderRadius: '50%',
+                background: '#1f2022',
+                borderColor: 'transparent',
               }}
+              size="small"
+              shape="round"
+              color="secondary"
+              aria-controls={Boolean(moreMenu.anchorEl) ? 'basic-menu' : undefined}
+              aria-haspopup="true"
+              aria-expanded={Boolean(moreMenu.anchorEl) ? 'true' : undefined}
             >
-              <Icons.Refresh />
+              <Icons.MoreVert />
             </Core.Button>
+            <SidePanelMoreMenu {...moreMenu} />
 
             <Core.Card
               elevation={1}
@@ -137,6 +159,33 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                 margin: 'auto',
               }}
             >
+              <Core.Typography
+                variant="h6"
+                component="div"
+                sx={{
+                  flexGrow: 1,
+                  fontFamily: 'monospace',
+                  fontWeight: 300,
+                  letterSpacing: '.1rem',
+                  color: '#F8FAF6',
+                  mb: 2,
+                  textDecoration: 'none',
+                  fontSize: '0.8rem',
+                }}
+              >
+                Bookmark for reading
+              </Core.Typography>
+              <Core.Button
+                variant="outlined"
+                onClick={() => setRefreshHash(refreshHash + 1)}
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 16,
+                }}
+              >
+                <Icons.Refresh />
+              </Core.Button>
               <Core.Grid container spacing={2}>
                 <Core.Grid xs={12} item>
                   <Core.TextField
