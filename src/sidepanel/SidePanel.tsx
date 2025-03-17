@@ -8,37 +8,98 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   const [refreshHash, setRefreshHash] = useState(0)
   const [pageTitle, setPageTitle] = useState<string | undefined>(undefined)
   const [pageLink, setPageLink] = useState<string | undefined>(undefined)
+  const [pageAuthor, setPageAuthor] = useState<string | undefined>(undefined)
   const [pageReadingTime, setPageReadingTime] = useState<string | undefined>(undefined)
   const [tagString, setTagString] = useState<string | undefined>(undefined)
   const [error, setError] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const moreMenu = useSidePanelMoreMenu()
+  const [author, setAuthor] = useState<string>('')
+  const [read, setRead] = useState(false)
+  const [notes, setNotes] = useState<string>('')
+  const [isQuote, setIsQuote] = useState(false)
+  const [quoteProcessed, setQuoteProcessed] = useState(false)
+
+  // Move the URL and author fetching logic to its own function
+  const fetchUrlAndAuthor = (tabId: number) => {
+    chrome.tabs.sendMessage(tabId, { action: 'getUrl' }, (response) => {
+      if (response && response.data) {
+        setPageLink(response.data)
+      } else {
+        setPageLink(undefined)
+      }
+    })
+
+    chrome.tabs.sendMessage(tabId, { action: 'getAuthor' }, (response) => {
+      if (response && response.data) {
+        setAuthor(response.data)
+      } else {
+        setAuthor('')
+      }
+    })
+  }
 
   useEffect(() => {
+    chrome.storage.local.get(['pendingQuote'], (result) => {
+      if (result.pendingQuote) {
+        const formattedQuote = `> ${result.pendingQuote}\n\n`;
+        setNotes(prevNotes => prevNotes + formattedQuote);
+        setIsQuote(true);
+        setPageTitle(result.pendingQuote.slice(0, 75) + '...');
+        setQuoteProcessed(true);
+
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0].id === undefined) {
+            return
+          }
+          // Use the shared function instead of duplicating code
+          fetchUrlAndAuthor(tabs[0].id);
+        })
+
+        chrome.storage.local.remove(['pendingQuote']);
+      }
+
+      if (!result.pendingQuote) {
+        fetchPageInfo();
+      }
+    });
+  }, []);
+
+  const fetchPageInfo = () => {
     setError(false)
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0].id === undefined) {
         return
       }
 
-      chrome.tabs.sendMessage(tabs[0].id, { action: 'getH1Content' }, (response) => {
-        if (response && response.h1Content) {
-          setPageTitle(response.h1Content)
-        } else {
-          setPageTitle(undefined)
-        }
-      })
+      if (!quoteProcessed) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: 'getTitle' }, (response) => {
+          if (response && response.data) {
+            setPageTitle(response.data)
+          } else {
+            setPageTitle(undefined)
+          }
+        })
 
-      chrome.tabs.sendMessage(tabs[0].id, { action: 'getCurrentUri' }, (response) => {
-        if (response && response.h1Content) {
-          setPageLink(response.h1Content)
-        } else {
-          setPageLink(undefined)
-        }
-      })
+        // Use the shared function instead of duplicating code
+        fetchUrlAndAuthor(tabs[0].id);
+      }
     })
-  }, [refreshHash])
+  }
+
+  const handleRefresh = () => {
+    if (!quoteProcessed) {
+      fetchPageInfo()
+    }
+    setRefreshHash(refreshHash + 1)
+  }
+
+  useEffect(() => {
+    if (refreshHash > 0 && !quoteProcessed) {
+      fetchPageInfo()
+    }
+  }, [refreshHash, quoteProcessed])
 
   const onSubmit = () => {
     setHasSubmitted(false)
@@ -56,13 +117,11 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
       estimatedTime = Number(pageReadingTime)
     }
 
-    // Fetch both API token and URL in parallel
     Promise.all([
       storage.getKey('readingsApiToken'),
       storage.getKey('readingsApi')
     ])
       .then(([token, apiUrl]) => {
-        // Check if token or API URL is missing
         if (!token || !apiUrl) {
           console.error('API token or URL not configured')
           setErrorMessage('Missing API configuration. Please check settings.')
@@ -79,8 +138,11 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
           body: JSON.stringify({
             title: pageTitle,
             link: pageLink,
+            author: pageAuthor,
             estimated_time: estimatedTime,
             tags: tagString ? tagString.split(',').map((tag) => tag.trim()) : [],
+            read: read,
+            notes: notes,
           }),
         })
       })
@@ -190,11 +252,11 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                   fontSize: '0.8rem',
                 }}
               >
-                Bookmark for reading
+                {isQuote ? "Add Quote" : "Bookmark for reading"}
               </Core.Typography>
               <Core.Button
                 variant="outlined"
-                onClick={() => setRefreshHash(refreshHash + 1)}
+                onClick={handleRefresh}
                 sx={{
                   position: 'absolute',
                   top: 8,
@@ -204,6 +266,32 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                 <Icons.Refresh />
               </Core.Button>
               <Core.Grid container spacing={2}>
+                <Core.Grid xs={12} item>
+                  <Core.Box sx={{ display: 'flex', flexDirection: 'row' }}>
+                    <Core.FormControlLabel
+                      control={
+                        <Core.Checkbox
+                          checked={read}
+                          onChange={(e) => setRead(e.target.checked)}
+                          color="primary"
+                        />
+                      }
+                      label="Has read"
+                      disabled={isQuote}
+                    />
+                    <Core.Box sx={{ mx: 2 }}></Core.Box>
+                    <Core.FormControlLabel
+                      control={
+                        <Core.Checkbox
+                          checked={isQuote}
+                          onChange={(e) => setIsQuote(e.target.checked)}
+                          color="primary"
+                        />
+                      }
+                      label="Is Quote"
+                    />
+                  </Core.Box>
+                </Core.Grid>
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={pageLink}
@@ -228,19 +316,32 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                     fullWidth
                   />
                 </Core.Grid>
-
                 <Core.Grid xs={12} item>
                   <Core.TextField
-                    error={pageReadingTime?.match(/^[0-9]*$/g) === null}
-                    value={pageReadingTime}
-                    label="Estimated reading minutes"
+                    value={author}
+                    label="Author"
                     variant="outlined"
+                    placeholder="Author of the content"
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      setPageReadingTime(event.target.value)
+                      setAuthor(event.target.value)
                     }
                     fullWidth
                   />
                 </Core.Grid>
+                {!isQuote && (
+                  <Core.Grid xs={12} item>
+                    <Core.TextField
+                      error={pageReadingTime?.match(/^[0-9]*$/g) === null}
+                      value={pageReadingTime}
+                      label="Estimated reading minutes"
+                      variant="outlined"
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                        setPageReadingTime(event.target.value)
+                      }
+                      fullWidth
+                    />
+                  </Core.Grid>
+                )}
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={tagString}
@@ -250,6 +351,20 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                       setTagString(event.target.value)
                     }
                     helperText="Separate tags with commas"
+                    fullWidth
+                  />
+                </Core.Grid>
+                <Core.Grid xs={12} item>
+                  <Core.TextField
+                    value={notes}
+                    label={isQuote ? "Quote" : "Notes"}
+                    variant="outlined"
+                    placeholder={isQuote ? "Enter the quote from this reading" : "Add your notes about this reading"}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setNotes(event.target.value)
+                    }
+                    multiline
+                    rows={3}
                     fullWidth
                   />
                 </Core.Grid>
@@ -292,7 +407,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                   color="success"
                   sx={{ bgcolor: '#3cf43640', borderColor: '#3cf436', mt: 1 }}
                 >
-                  Page bookmarked for reading later.
+                  {isQuote ? "Quote added to your reading list." : "Page bookmarked for reading later."}
                 </Core.Alert>
               </Core.Grid>
             )}

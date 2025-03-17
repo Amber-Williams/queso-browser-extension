@@ -4,7 +4,7 @@ import { SidePanel } from './../sidepanel/SidePanel'
 
 ReactDOM.createRoot(document.getElementById('app') as HTMLElement).render(
   <React.StrictMode>
-    <div style={{ height: '600px', width: '350px' }}>
+    <div style={{ minHeight: '780px', width: '350px', overflowY: 'auto' }}>
       <SidePanel type="popup" />
     </div>
   </React.StrictMode>,
