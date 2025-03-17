@@ -11,6 +11,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   const [pageReadingTime, setPageReadingTime] = useState<string | undefined>(undefined)
   const [tagString, setTagString] = useState<string | undefined>(undefined)
   const [error, setError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
   const [hasSubmitted, setHasSubmitted] = useState(false)
   const moreMenu = useSidePanelMoreMenu()
 
@@ -41,7 +42,10 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
 
   const onSubmit = () => {
     setHasSubmitted(false)
+    setErrorMessage(undefined)
+
     if (pageLink === undefined || pageTitle === undefined) {
+      setErrorMessage("Title and link are required")
       return setError(true)
     } else {
       setError(false)
@@ -52,11 +56,21 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
       estimatedTime = Number(pageReadingTime)
     }
 
-    storage.getKey('readingsApiToken').then((token) => {
-      // TODO: handle if API variables aren't found & ugly callback logic
+    // Fetch both API token and URL in parallel
+    Promise.all([
+      storage.getKey('readingsApiToken'),
+      storage.getKey('readingsApi')
+    ])
+      .then(([token, apiUrl]) => {
+        // Check if token or API URL is missing
+        if (!token || !apiUrl) {
+          console.error('API token or URL not configured')
+          setErrorMessage('Missing API configuration. Please check settings.')
+          setError(true)
+          return Promise.reject(new Error('Missing API configuration. Please check settings.'))
+        }
 
-      storage.getKey('readingsApi').then((link) => {
-        fetch(link as string, {
+        return fetch(apiUrl as string, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -69,19 +83,23 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
             tags: tagString ? tagString.split(',').map((tag) => tag.trim()) : [],
           }),
         })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error('Failed to submit page')
-            }
-
-            setHasSubmitted(true)
-          })
-          .catch((error) => {
-            console.error(error)
-            setError(true)
-          })
       })
-    })
+      .then((response) => {
+        if (!response || !response.ok) {
+          const errorMsg = `Failed to submit page: ${response ? response.status : 'network error'}`
+          setErrorMessage(errorMsg)
+          throw new Error(errorMsg)
+        }
+
+        setHasSubmitted(true)
+      })
+      .catch((error) => {
+        console.error('Submission error:', error)
+        if (!errorMessage) {
+          setErrorMessage('Network error submitting page')
+        }
+        setError(true)
+      })
   }
 
   return (
@@ -261,7 +279,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                   color="error"
                   sx={{ bgcolor: '#f4433640', borderColor: '#f44336', mt: 1 }}
                 >
-                  Oops, something went wrong.
+                  {errorMessage || "Oops, something went wrong."}
                 </Core.Alert>
               </Core.Grid>
             )}

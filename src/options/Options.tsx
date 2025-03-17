@@ -7,6 +7,9 @@ export const Options = () => {
   const [apiToken, setApiToken] = useState<string | undefined>()
   const [apiLink, setApiLink] = useState<string | undefined>()
   const [readingUI, setReadingsUi] = useState<string | undefined>()
+  const [error, setError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
+  const [saveSuccess, setSaveSuccess] = useState(false)
 
   useEffect(() => {
     if (import.meta.env.VITE_READINGS_API_TOKEN && import.meta.env.VITE_READINGS_API_SERVER) {
@@ -41,9 +44,54 @@ export const Options = () => {
   }, [])
 
   const onSave = () => {
-    storage.saveKey('readingsApiToken', apiToken)
-    storage.saveKey('readingsApi', apiLink)
-    storage.saveKey('readingsUi', readingUI)
+    // Reset status messages
+    setError(false)
+    setErrorMessage(undefined)
+    setSaveSuccess(false)
+
+    // Validate inputs
+    if (!apiToken || apiToken.trim() === '') {
+      setError(true)
+      setErrorMessage('API Token is required')
+      return
+    }
+
+    if (!apiLink || apiLink.trim() === '') {
+      setError(true)
+      setErrorMessage('API URL is required')
+      return
+    }
+
+    if (!readingUI || readingUI.trim() === '') {
+      setError(true)
+      setErrorMessage('Readings UI URL is required')
+      return
+    }
+
+    // Validate URL formats
+    try {
+      new URL(apiLink)
+      new URL(readingUI)
+    } catch (e) {
+      setError(true)
+      setErrorMessage('Please enter valid URLs')
+      return
+    }
+
+    // Save to storage
+    Promise.all([
+      storage.saveKey('readingsApiToken', apiToken),
+      storage.saveKey('readingsApi', apiLink),
+      storage.saveKey('readingsUi', readingUI)
+    ])
+      .then(() => {
+        setSaveSuccess(true)
+      })
+      .catch((err) => {
+        console.error('Error saving options:', err)
+        setError(true)
+        setErrorMessage('Failed to save settings')
+      })
   }
 
   return (
@@ -65,7 +113,7 @@ export const Options = () => {
             <Background.ContourMapSVG size={1000} />
           </Background.Surface>
 
-          <main style={{ marginLeft: 16, marginRight: 16 }}>
+          <main style={{ padding: '0 16px', margin: 'auto', maxWidth: '600px' }}>
             <Core.Typography
               variant="h6"
               component="div"
@@ -73,14 +121,14 @@ export const Options = () => {
                 flexGrow: 1,
                 fontFamily: 'monospace',
                 fontWeight: 700,
-                letterSpacing: '.2rem',
+                letterSpacing: '.3rem',
                 color: '#F8FAF6',
                 textDecoration: 'none',
-                mx: 3,
-                my: 4,
+                pt: 4,
+                pb: 2,
               }}
             >
-              Settings Page
+              QUESO SETTINGS
             </Core.Typography>
 
             <Core.Card
@@ -88,62 +136,94 @@ export const Options = () => {
               sx={{
                 mt: 4,
                 p: 2,
-                position: 'relative',
+                maxWidth: '600px',
                 margin: 'auto',
               }}
             >
+              <Core.Typography
+                variant="h6"
+                component="div"
+                sx={{
+                  flexGrow: 1,
+                  fontFamily: 'monospace',
+                  fontWeight: 300,
+                  letterSpacing: '.1rem',
+                  color: '#F8FAF6',
+                  mb: 2,
+                  textDecoration: 'none',
+                  fontSize: '0.8rem',
+                }}
+              >
+                API Configuration
+              </Core.Typography>
               <Core.Grid container spacing={2}>
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={apiToken}
-                    label="Readings API server token"
+                    label="API Token"
                     variant="outlined"
-                    fullWidth
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       setApiToken(event.target.value)
                     }
+                    fullWidth
                   />
                 </Core.Grid>
-
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={apiLink}
-                    label="Readings API server link"
+                    label="API URL"
                     variant="outlined"
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => setApiLink(event.target.value)}
                     fullWidth
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                      setApiLink(event.target.value)
-                    }
                   />
                 </Core.Grid>
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={readingUI}
-                    label="Readings UI link"
+                    label="Readings UI URL"
                     variant="outlined"
-                    fullWidth
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       setReadingsUi(event.target.value)
                     }
+                    fullWidth
                   />
                 </Core.Grid>
-                <Core.Grid xs={12} item sx={{ mt: 5 }}>
+
+                <Core.Grid xs={12} item>
                   <Core.Button
                     type="submit"
-                    variant="outlined"
+                    variant="contained"
                     color="primary"
                     onClick={onSave}
-                    sx={{
-                      position: 'absolute',
-                      bottom: 16,
-                      right: 16,
-                    }}
+                    sx={{ mt: 2 }}
                   >
-                    Update
+                    Save
                   </Core.Button>
                 </Core.Grid>
               </Core.Grid>
             </Core.Card>
+
+            {error && (
+              <Core.Alert
+                variant="outlined"
+                severity="error"
+                color="error"
+                sx={{ bgcolor: '#f4433640', borderColor: '#f44336', mt: 3, maxWidth: '600px', margin: '16px auto' }}
+              >
+                {errorMessage || "Oops, something went wrong."}
+              </Core.Alert>
+            )}
+
+            {saveSuccess && (
+              <Core.Alert
+                variant="outlined"
+                severity="success"
+                color="success"
+                sx={{ bgcolor: '#3cf43640', borderColor: '#3cf436', mt: 3, maxWidth: '600px', margin: '16px auto' }}
+              >
+                Settings saved successfully.
+              </Core.Alert>
+            )}
           </main>
         </div>
       </>
