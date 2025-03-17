@@ -8,6 +8,8 @@
 
 ## Running the app locally
 
+You can add your environment variables from the app's settings page or by creating a copy of `.env.example` and renaming it to `.env`.
+
 ```shell
 pnpm dev
 ```

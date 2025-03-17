@@ -140,7 +140,6 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                 borderColor: 'transparent',
               }}
               size="small"
-              shape="round"
               color="secondary"
               aria-controls={Boolean(moreMenu.anchorEl) ? 'basic-menu' : undefined}
               aria-haspopup="true"
