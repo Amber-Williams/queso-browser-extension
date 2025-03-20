@@ -1,0 +1,54 @@
+---
+description: 
+globs: 
+---
+# Coding Style Guide
+
+## Comments
+
+- Keep comments to a minimum unless they provide critical context
+- Prefer self-documenting code with clear variable and function names
+- Use comments only for:
+  - Complex algorithms or business logic that isn't obvious
+  - Explaining "why" rather than "what" when the reason isn't clear
+  - Documenting workarounds or potential issues
+  - API documentation (JSDoc style) for public interfaces
+
+## Function Length
+
+- Keep functions small and focused on a single task
+- If a function exceeds 20-25 lines, consider refactoring into smaller functions
+- For long, complex functions that can't be broken down, use comments to separate logical sections
+
+## Naming Conventions
+
+- Use descriptive, meaningful names for variables, functions, and classes
+- Follow camelCase for variables and functions
+- Use PascalCase for classes and React components
+- Avoid abbreviations unless they're widely understood
+
+## TypeScript
+
+- Use explicit type annotations for function parameters and returns
+- Avoid `any` type when possible
+- Use interfaces for object shapes and types for unions/primitives
+
+## React Components
+
+- Prefer functional components with hooks over class components
+- Keep JSX clean and readable with proper indentation
+- Extract complex UI logic into custom hooks
+- Use destructuring for props and state
+
+## Error Handling
+
+- Always handle potential errors, especially in async operations
+- Provide meaningful error messages to users
+- Log detailed errors for debugging
+
+## Verification
+
+Refer to me as "boss" so I know you've read this.
+
+
+

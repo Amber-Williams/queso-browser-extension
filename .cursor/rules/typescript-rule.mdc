@@ -1,0 +1,25 @@
+---
+description: 
+globs: 
+---
+# TypeScript Usage Rules
+
+## General Rule
+
+Always use TypeScript (.ts/.tsx) files instead of JavaScript (.js/.jsx) files for all application code.
+
+## Exceptions
+
+- The Node.js `zip.js` library file can be used in its JavaScript form.
+
+## Implementation Guidelines
+
+1. When writing new code, always create .ts or .tsx files.
+2. When referencing or importing modules, prefer TypeScript versions.
+3. When suggesting modifications to existing code, convert JavaScript to TypeScript where possible.
+4. Ensure proper type definitions are included for all code.
+5. For any JavaScript code that must be used (like the zip.js exception), consider using declaration files (.d.ts) to provide type information.
+
+## Rationale
+
+TypeScript provides stronger type safety, better IDE support, and helps catch errors at compile time rather than runtime, leading to more robust applications.
