@@ -1,9 +1,9 @@
 {
   "name": "queso",
-  "displayName": "Queso | Holey triangle apps",
+  "displayName": "Queso | Affineur apps",
   "version": "0.0.4",
   "author": "amber williams <https://github.com/amber-williams>",
-  "description": "Queso - a browser extension that works within the Holey triangle apps ecosystem.",
+  "description": "Queso - a browser extension that works within the Affienur apps ecosystem.",
   "type": "module",
   "license": "MIT",
   "keywords": [

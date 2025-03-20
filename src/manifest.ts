@@ -41,7 +41,7 @@ export default defineManifest(async (env) => ({
   },
   content_scripts: [
     {
-      matches: ['http://*/*', 'https://*/*'],
+      matches: ['https://*/*'],
       js: ['src/contentScript/index.ts'],
     },
   ],
@@ -53,7 +53,6 @@ export default defineManifest(async (env) => ({
   ],
   permissions: [
     'activeTab',
-    'scripting',
     'storage',
     'sidePanel',
     'contextMenus'

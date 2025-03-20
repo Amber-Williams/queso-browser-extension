@@ -1,0 +1,36 @@
+description: |
+  Queso is a browser extension for the Affineur apps ecosystem that helps you manage your reading and research workflow.
+
+  FEATURES:
+  • Save articles, blog posts to your reading list with ease
+  • Add quotes from any webpage directly to your notes using the context menu
+  • Organize content with custom tags for easy retrieval
+  • Track your reading progress with read/unread status
+  • Add personal notes to saved content
+  • Estimate reading time for better time management
+  • Access your reading list from the convenient side panel or popup
+
+  Queso helps you build a personal knowledge base by capturing content worth saving while you browse. Perfect for researchers, students, writers, and anyone who wants to organize their online reading.
+
+  Get started by adding your API configuration in the settings page, then start saving content from anywhere on the web.
+
+single-purpose-description: |
+  Queso has a single purpose: to help users capture and organize web content for later reading and research. The extension allows users to save articles, extract quotes, and add notes while browsing, creating a personal knowledge repository within the Affineur ecosystem. All features - including the context menu for quotes, side panel for accessing saved content, and note-taking functionality - directly support this unified purpose of web content collection and organization. Users can easily understand that Queso is a research companion that enhances their browsing experience by letting them save and organize valuable information they find online.
+
+permissions:
+  activeTab: |
+    The activeTab permission is required to access information about the current webpage that the user is viewing. This is essential for Queso's core functionality of capturing content from the active tab, including the page title, URL, and selected text when the user wants to save an article or add a quote to their notes. Without this permission, Queso would not be able to identify what content the user is trying to save.
+
+  storage: |
+    The storage permission is essential for Queso to save and retrieve user data such as saved articles, quotes, notes, and user preferences. This permission enables the extension to securely persist environment variables locally for the user, and store settings needed to upload their reading data to their own server. Without storage permission, Queso would not be able to maintain the user's personal knowledge repository across browsing sessions, remember their API configuration, or fulfill its core purpose of organizing web content for later access.
+
+  sidePanel: |
+    The sidePanel permission is used to provide users with a convenient interface to access their saved content without leaving the current webpage. This enhances the user experience by allowing them to view their reading list, add notes, and organize content in a side panel while browsing. The side panel is a key component of Queso's content organization functionality, making saved information easily accessible while users continue their research.
+
+  contextMenus: |
+    The contextMenus permission enables Queso to add options to the browser's right-click context menu, allowing users to quickly save selected text as quotes or add entire pages to their reading list. This permission provides a streamlined workflow for content capture, making it easier for users to save information they find valuable while browsing. This direct capture functionality is central to Queso's purpose of helping users collect web content for research.
+
+host_permissions:
+
+  "https://*/*": |
+    Queso requires access to all HTTPS websites because its primary purpose is to allow users to save content from any secure website they visit. Most modern websites use HTTPS, and users expect to be able to save articles, quotes, and notes from these sites. This permission enables Queso to inject the necessary content scripts to extract and process information when a user chooses to save content, regardless of which secure website they are visiting.
