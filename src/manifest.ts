@@ -58,7 +58,4 @@ export default defineManifest(async (env) => ({
     'sidePanel',
     'contextMenus'
   ],
-  chrome_url_overrides: {
-    newtab: 'newtab.html',
-  },
 }))
