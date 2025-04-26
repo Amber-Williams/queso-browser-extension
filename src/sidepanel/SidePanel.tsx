@@ -88,7 +88,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
         })
 
         // Use the shared function instead of duplicating code
-        fetchUrlAndAuthor(tabs[0].id);
+        fetchUrlAndAuthor(tabs[0].id)
       }
     })
   }
@@ -111,7 +111,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
     setErrorMessage(undefined)
 
     if (pageLink === undefined || pageTitle === undefined) {
-      setErrorMessage("Title and link are required")
+      setErrorMessage('Title and link are required')
       return setError(true)
     } else {
       setError(false)
@@ -122,10 +122,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
       estimatedTime = Number(pageReadingTime)
     }
 
-    Promise.all([
-      storage.getKey('readingsApiToken'),
-      storage.getKey('readingsApi')
-    ])
+    Promise.all([storage.getKey('readingsApiToken'), storage.getKey('readingsApi')])
       .then(([token, apiUrl]) => {
         if (!token || !apiUrl) {
           console.error('API token or URL not configured')
@@ -258,7 +255,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                   fontSize: '0.8rem',
                 }}
               >
-                {isQuote ? "Add Quote" : "Bookmark for reading"}
+                {isQuote ? 'Add Quote' : 'Bookmark for reading'}
               </Core.Typography>
               <Core.Button
                 variant="outlined"
@@ -363,9 +360,13 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={notes}
-                    label={isQuote ? "Quote" : "Notes"}
+                    label={isQuote ? 'Quote' : 'Notes'}
                     variant="outlined"
-                    placeholder={isQuote ? "Enter the quote from this reading" : "Add your notes about this reading"}
+                    placeholder={
+                      isQuote
+                        ? 'Enter the quote from this reading'
+                        : 'Add your notes about this reading'
+                    }
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       setNotes(event.target.value)
                     }
@@ -400,7 +401,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                   color="error"
                   sx={{ bgcolor: '#f4433640', borderColor: '#f44336', mt: 1 }}
                 >
-                  {errorMessage || "Oops, something went wrong."}
+                  {errorMessage || 'Oops, something went wrong.'}
                 </Core.Alert>
               </Core.Grid>
             )}
@@ -413,7 +414,9 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                   color="success"
                   sx={{ bgcolor: '#3cf43640', borderColor: '#3cf436', mt: 1 }}
                 >
-                  {isQuote ? "Quote added to your reading list." : "Page bookmarked for reading later."}
+                  {isQuote
+                    ? 'Quote added to your reading list.'
+                    : 'Page bookmarked for reading later.'}
                 </Core.Alert>
               </Core.Grid>
             )}

@@ -17,17 +17,17 @@ export default defineManifest(async (env) => ({
   version: `${major}.${minor}.${patch}`,
   description: packageJson.description,
   icons: {
-    '16': 'img/logo-16.png',
-    '32': 'img/logo-32.png',
-    '48': 'img/logo-48.png',
-    '128': 'img/logo-128.png',
+    '16': 'img/logo16.png',
+    '32': 'img/logo32.png',
+    '48': 'img/logo48.png',
+    '128': 'img/logo128.png',
   },
   action: {
     default_icon: {
-      '16': 'img/logo-16.png',
-      '32': 'img/logo-32.png',
-      '48': 'img/logo-48.png',
-      '128': 'img/logo-128.png',
+      '16': 'img/logo16.png',
+      '32': 'img/logo32.png',
+      '48': 'img/logo48.png',
+      '128': 'img/logo128.png',
     },
     default_popup: 'popup.html',
   },
@@ -37,7 +37,7 @@ export default defineManifest(async (env) => ({
   options_page: 'options.html',
   background: {
     service_worker: 'src/background/index.ts',
-    type: 'module'
+    type: 'module',
   },
   content_scripts: [
     {

@@ -164,7 +164,9 @@ export const Options = () => {
                     value={apiLink}
                     label="API URL"
                     variant="outlined"
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => setApiLink(event.target.value)}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                      setApiLink(event.target.value)
+                    }
                     fullWidth
                   />
                 </Core.Grid>
@@ -199,9 +201,15 @@ export const Options = () => {
                 variant="outlined"
                 severity="error"
                 color="error"
-                sx={{ bgcolor: '#f4433640', borderColor: '#f44336', mt: 3, maxWidth: '600px', margin: '16px auto' }}
+                sx={{
+                  bgcolor: '#f4433640',
+                  borderColor: '#f44336',
+                  mt: 3,
+                  maxWidth: '600px',
+                  margin: '16px auto',
+                }}
               >
-                {errorMessage || "Oops, something went wrong."}
+                {errorMessage || 'Oops, something went wrong.'}
               </Core.Alert>
             )}
 
@@ -210,7 +218,13 @@ export const Options = () => {
                 variant="outlined"
                 severity="success"
                 color="success"
-                sx={{ bgcolor: '#3cf43640', borderColor: '#3cf436', mt: 3, maxWidth: '600px', margin: '16px auto' }}
+                sx={{
+                  bgcolor: '#3cf43640',
+                  borderColor: '#3cf436',
+                  mt: 3,
+                  maxWidth: '600px',
+                  margin: '16px auto',
+                }}
               >
                 Settings saved successfully.
               </Core.Alert>
