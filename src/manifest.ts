@@ -45,16 +45,5 @@ export default defineManifest(async (env) => ({
       js: ['src/contentScript/index.ts'],
     },
   ],
-  web_accessible_resources: [
-    {
-      resources: ['img/logo-16.png', 'img/logo-32.png', 'img/logo-48.png', 'img/logo-128.png'],
-      matches: [],
-    },
-  ],
-  permissions: [
-    'activeTab',
-    'storage',
-    'sidePanel',
-    'contextMenus'
-  ],
+  permissions: ['activeTab', 'storage', 'sidePanel', 'contextMenus'],
 }))

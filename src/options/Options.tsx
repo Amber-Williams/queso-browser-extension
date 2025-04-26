@@ -1,6 +1,7 @@
 import { Background, Core, Theme } from '@mb3r/component-library'
 import { useEffect, useState } from 'react'
 
+import * as auth from './../util/auth'
 import * as storage from './../util/storage'
 
 export const Options = () => {
@@ -12,35 +13,25 @@ export const Options = () => {
   const [saveSuccess, setSaveSuccess] = useState(false)
 
   useEffect(() => {
-    if (import.meta.env.VITE_READINGS_API_TOKEN && import.meta.env.VITE_READINGS_API_SERVER) {
-      // Useful to persist for development mode
-      setApiToken(import.meta.env.VITE_READINGS_API_TOKEN)
-      setApiLink(import.meta.env.VITE_READINGS_API_SERVER)
-    } else {
-      storage.getKey('readingsApiToken').then((token) => {
-        if (token) {
-          setApiToken(token as string)
-        }
-      })
-      storage.getKey('readingsApi').then((link) => {
-        if (link) {
-          setApiLink(link as string)
-        }
-      })
-    }
+    auth.getAuthTokens()
   }, [])
 
   useEffect(() => {
-    if (import.meta.env.VITE_READINGS_UI_SERVER) {
-      // Useful to persist for development mode
-      setReadingsUi(import.meta.env.VITE_READINGS_UI_SERVER)
-    } else {
-      storage.getKey('readingsUi').then((token) => {
-        if (token) {
-          setReadingsUi(token as string)
-        }
-      })
-    }
+    storage.getKey('readingsUi').then((token) => {
+      if (token) {
+        setReadingsUi(token as string)
+      }
+    })
+    storage.getKey('readingsApiToken').then((token) => {
+      if (token) {
+        setApiToken(token as string)
+      }
+    })
+    storage.getKey('readingsApi').then((link) => {
+      if (link) {
+        setApiLink(link as string)
+      }
+    })
   }, [])
 
   const onSave = () => {
@@ -82,7 +73,7 @@ export const Options = () => {
     Promise.all([
       storage.saveKey('readingsApiToken', apiToken),
       storage.saveKey('readingsApi', apiLink),
-      storage.saveKey('readingsUi', readingUI)
+      storage.saveKey('readingsUi', readingUI),
     ])
       .then(() => {
         setSaveSuccess(true)

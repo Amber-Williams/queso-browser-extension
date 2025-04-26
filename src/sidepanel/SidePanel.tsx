@@ -1,6 +1,7 @@
 import { Background, Core, Icons, Theme } from '@mb3r/component-library'
 import { useEffect, useState } from 'react'
 
+import * as auth from './../util/auth'
 import * as storage from './../util/storage'
 import SidePanelMoreMenu, { useSidePanelMoreMenu } from './SidePanelMoreMenu'
 
@@ -41,30 +42,34 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   }
 
   useEffect(() => {
+    auth.getAuthTokens()
+  }, [])
+
+  useEffect(() => {
     chrome.storage.local.get(['pendingQuote'], (result) => {
       if (result.pendingQuote) {
-        const formattedQuote = `> ${result.pendingQuote}\n\n`;
-        setNotes(prevNotes => prevNotes + formattedQuote);
-        setIsQuote(true);
-        setPageTitle(result.pendingQuote.slice(0, 75) + '...');
-        setQuoteProcessed(true);
+        const formattedQuote = `> ${result.pendingQuote}\n\n`
+        setNotes((prevNotes) => prevNotes + formattedQuote)
+        setIsQuote(true)
+        setPageTitle(result.pendingQuote.slice(0, 75) + '...')
+        setQuoteProcessed(true)
 
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs[0].id === undefined) {
             return
           }
           // Use the shared function instead of duplicating code
-          fetchUrlAndAuthor(tabs[0].id);
+          fetchUrlAndAuthor(tabs[0].id)
         })
 
-        chrome.storage.local.remove(['pendingQuote']);
+        chrome.storage.local.remove(['pendingQuote'])
       }
 
       if (!result.pendingQuote) {
-        fetchPageInfo();
+        fetchPageInfo()
       }
-    });
-  }, []);
+    })
+  }, [])
 
   const fetchPageInfo = () => {
     setError(false)
@@ -140,6 +145,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
             link: pageLink,
             author: pageAuthor,
             estimated_time: estimatedTime,
+            is_quote: isQuote,
             tags: tagString ? tagString.split(',').map((tag) => tag.trim()) : [],
             read: read,
             notes: notes,
