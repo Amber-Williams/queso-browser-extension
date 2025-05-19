@@ -9,7 +9,6 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   const [refreshHash, setRefreshHash] = useState(0)
   const [pageTitle, setPageTitle] = useState<string | undefined>(undefined)
   const [pageLink, setPageLink] = useState<string | undefined>(undefined)
-  const [pageAuthor, setPageAuthor] = useState<string | undefined>(undefined)
   const [pageReadingTime, setPageReadingTime] = useState<string | undefined>(undefined)
   const [tagString, setTagString] = useState<string | undefined>(undefined)
   const [error, setError] = useState(false)
@@ -20,6 +19,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   const [read, setRead] = useState(false)
   const [notes, setNotes] = useState<string>('')
   const [isQuote, setIsQuote] = useState(false)
+  const [isTil, setIsTil] = useState(false)
   const [quoteProcessed, setQuoteProcessed] = useState(false)
 
   // Move the URL and author fetching logic to its own function
@@ -106,6 +106,26 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
     }
   }, [refreshHash, quoteProcessed])
 
+  const handleCheckboxChange = (type: 'read' | 'quote' | 'til', checked: boolean) => {
+    setRead(false)
+    setIsQuote(false)
+    setIsTil(false)
+
+    if (checked) {
+      switch (type) {
+        case 'read':
+          setRead(true)
+          break
+        case 'quote':
+          setIsQuote(true)
+          break
+        case 'til':
+          setIsTil(true)
+          break
+      }
+    }
+  }
+
   const onSubmit = () => {
     setHasSubmitted(false)
     setErrorMessage(undefined)
@@ -140,12 +160,13 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
           body: JSON.stringify({
             title: pageTitle,
             link: pageLink,
-            author: pageAuthor,
+            author,
             estimated_time: estimatedTime,
             is_quote: isQuote,
+            is_til: isTil,
             tags: tagString ? tagString.split(',').map((tag) => tag.trim()) : [],
-            read: read,
-            notes: notes,
+            read,
+            notes,
           }),
         })
       })
@@ -255,7 +276,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                   fontSize: '0.8rem',
                 }}
               >
-                {isQuote ? 'Add Quote' : 'Bookmark for reading'}
+                {isQuote ? 'Add Quote' : isTil ? 'Today I Learned...' : 'Bookmark'}
               </Core.Typography>
               <Core.Button
                 variant="outlined"
@@ -269,32 +290,6 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                 <Icons.Refresh />
               </Core.Button>
               <Core.Grid container spacing={2}>
-                <Core.Grid xs={12} item>
-                  <Core.Box sx={{ display: 'flex', flexDirection: 'row' }}>
-                    <Core.FormControlLabel
-                      control={
-                        <Core.Checkbox
-                          checked={read}
-                          onChange={(e) => setRead(e.target.checked)}
-                          color="primary"
-                        />
-                      }
-                      label="Has read"
-                      disabled={isQuote}
-                    />
-                    <Core.Box sx={{ mx: 2 }}></Core.Box>
-                    <Core.FormControlLabel
-                      control={
-                        <Core.Checkbox
-                          checked={isQuote}
-                          onChange={(e) => setIsQuote(e.target.checked)}
-                          color="primary"
-                        />
-                      }
-                      label="Is Quote"
-                    />
-                  </Core.Box>
-                </Core.Grid>
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={pageLink}
@@ -331,7 +326,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                     fullWidth
                   />
                 </Core.Grid>
-                {!isQuote && (
+                {!isQuote && !isTil && (
                   <Core.Grid xs={12} item>
                     <Core.TextField
                       error={pageReadingTime?.match(/^[0-9]*$/g) === null}
@@ -375,7 +370,42 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                     fullWidth
                   />
                 </Core.Grid>
-
+                <Core.Grid xs={12} item>
+                  <Core.Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    <Core.FormControlLabel
+                      control={
+                        <Core.Checkbox
+                          checked={read}
+                          onChange={(e) => handleCheckboxChange('read', e.target.checked)}
+                          color="primary"
+                        />
+                      }
+                      label="Has read"
+                    />
+                    <Core.Box sx={{ mx: 2 }}></Core.Box>
+                    <Core.FormControlLabel
+                      control={
+                        <Core.Checkbox
+                          checked={isQuote}
+                          onChange={(e) => handleCheckboxChange('quote', e.target.checked)}
+                          color="primary"
+                        />
+                      }
+                      label="Is Quote"
+                    />
+                    <Core.Box sx={{ mx: 2 }}></Core.Box>
+                    <Core.FormControlLabel
+                      control={
+                        <Core.Checkbox
+                          checked={isTil}
+                          onChange={(e) => handleCheckboxChange('til', e.target.checked)}
+                          color="primary"
+                        />
+                      }
+                      label="Is TIL"
+                    />
+                  </Core.Box>
+                </Core.Grid>
                 <Core.Grid xs={12} item sx={{ mt: 3 }}>
                   <Core.Button
                     type="submit"
