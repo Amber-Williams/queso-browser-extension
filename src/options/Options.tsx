@@ -11,6 +11,46 @@ export const Options = () => {
   const [error, setError] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [showApiFieldMappings, setShowApiFieldMappings] = useState(false)
+
+  interface ApiFieldMappings {
+    title: string
+    link: string
+    author: string
+    estimated_time: string
+    is_quote: string
+    is_til: string
+    tags: string
+    read: string
+    notes: string
+  }
+
+  const defaultApiFieldMappings: ApiFieldMappings = {
+    title: 'title',
+    link: 'link',
+    author: 'author',
+    estimated_time: 'estimated_time',
+    is_quote: 'is_quote',
+    is_til: 'is_til',
+    read: 'read',
+    tags: 'tags',
+    notes: 'notes',
+  }
+
+  const apiFieldDataTypes: Record<keyof ApiFieldMappings, string> = {
+    title: 'string',
+    link: 'string',
+    author: 'string',
+    estimated_time: 'integer',
+    is_quote: 'boolean',
+    is_til: 'boolean',
+    tags: 'string[]',
+    read: 'boolean',
+    notes: 'string',
+  }
+
+  const [apiFieldMappings, setApiFieldMappings] =
+    useState<ApiFieldMappings>(defaultApiFieldMappings)
 
   useEffect(() => {
     auth.getAuthTokens()
@@ -30,6 +70,11 @@ export const Options = () => {
     storage.getKey('readingsApi').then((link) => {
       if (link) {
         setApiLink(link as string)
+      }
+    })
+    storage.getKey('apiFieldMappings').then((mappings) => {
+      if (mappings) {
+        setApiFieldMappings(mappings as ApiFieldMappings)
       }
     })
   }, [])
@@ -55,7 +100,7 @@ export const Options = () => {
 
     if (!readingUI || readingUI.trim() === '') {
       setError(true)
-      setErrorMessage('Readings UI URL is required')
+      setErrorMessage('Link to view your readings is required')
       return
     }
 
@@ -74,6 +119,7 @@ export const Options = () => {
       storage.saveKey('readingsApiToken', apiToken),
       storage.saveKey('readingsApi', apiLink),
       storage.saveKey('readingsUi', readingUI),
+      storage.saveKey('apiFieldMappings', apiFieldMappings),
     ])
       .then(() => {
         setSaveSuccess(true)
@@ -173,7 +219,7 @@ export const Options = () => {
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={readingUI}
-                    label="Readings UI URL"
+                    label="Link to view your readings"
                     variant="outlined"
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                       setReadingsUi(event.target.value)
@@ -182,13 +228,86 @@ export const Options = () => {
                   />
                 </Core.Grid>
 
+                {/* API Field Mappings Section Toggle */}
+                <Core.Grid xs={12} item>
+                  <Core.FormControlLabel
+                    control={
+                      <Core.Switch
+                        checked={showApiFieldMappings}
+                        onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                          setShowApiFieldMappings(event.target.checked)
+                        }
+                      />
+                    }
+                    label="Customize API Field Names"
+                    sx={{ color: '#F8FAF6' }}
+                  />
+                </Core.Grid>
+
+                {/* API Field Mappings Section */}
+                {showApiFieldMappings && (
+                  <Core.Grid item xs={12} sx={{ mt: 0 }}>
+                    <Core.Typography
+                      variant="h6"
+                      component="div"
+                      sx={{
+                        flexGrow: 1,
+                        fontFamily: 'monospace',
+                        fontWeight: 300,
+                        letterSpacing: '.1rem',
+                        color: '#F8FAF6',
+                        mb: 1,
+                        textDecoration: 'none',
+                        fontSize: '0.7rem',
+                      }}
+                    >
+                      API Field Mappings
+                    </Core.Typography>
+                    <Core.Typography
+                      variant="body2"
+                      component="div"
+                      sx={{
+                        color: '#a0a0a0',
+                        mb: 2,
+                      }}
+                    >
+                      Used to rename fields sent to the readings API.
+                    </Core.Typography>
+                    <Core.Grid container spacing={2}>
+                      {(Object.keys(defaultApiFieldMappings) as Array<keyof ApiFieldMappings>).map(
+                        (key) => (
+                          <Core.Grid xs={12} sm={6} item key={key}>
+                            <Core.TextField
+                              value={apiFieldMappings[key]}
+                              label={`${key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')} [${apiFieldDataTypes[key]}]`}
+                              placeholder={`Default: ${defaultApiFieldMappings[key]}`}
+                              variant="outlined"
+                              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                                setApiFieldMappings((prev) => ({
+                                  ...prev,
+                                  [key]:
+                                    event.target.value.trim() === ''
+                                      ? defaultApiFieldMappings[key]
+                                      : event.target.value,
+                                }))
+                              }
+                              fullWidth
+                              size="small"
+                            />
+                          </Core.Grid>
+                        ),
+                      )}
+                    </Core.Grid>
+                  </Core.Grid>
+                )}
+
                 <Core.Grid xs={12} item>
                   <Core.Button
                     type="submit"
                     variant="contained"
                     color="primary"
                     onClick={onSave}
-                    sx={{ mt: 2 }}
+                    sx={{ mt: 1, marginLeft: 'auto' }}
                   >
                     Save
                   </Core.Button>

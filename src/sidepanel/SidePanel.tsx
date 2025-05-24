@@ -1,5 +1,5 @@
 import { Background, Core, Icons, Theme } from '@mb3r/component-library'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import * as auth from './../util/auth'
 import * as storage from './../util/storage'
@@ -21,6 +21,32 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   const [isQuote, setIsQuote] = useState(false)
   const [isTil, setIsTil] = useState(false)
   const [quoteProcessed, setQuoteProcessed] = useState(false)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  interface ApiFieldMappings {
+    title: string
+    link: string
+    author: string
+    estimated_time: string
+    is_quote: string
+    is_til: string
+    tags: string
+    read: string
+    notes: string
+  }
+
+  const defaultApiFieldMappings: ApiFieldMappings = {
+    title: 'title',
+    link: 'link',
+    author: 'author',
+    estimated_time: 'estimated_time',
+    is_quote: 'is_quote',
+    is_til: 'is_til',
+    tags: 'tags',
+    read: 'read',
+    notes: 'notes',
+  }
+  const [apiFieldMappings, setApiFieldMappings] =
+    useState<ApiFieldMappings>(defaultApiFieldMappings)
 
   // Move the URL and author fetching logic to its own function
   const fetchUrlAndAuthor = (tabId: number) => {
@@ -46,6 +72,13 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   }, [])
 
   useEffect(() => {
+    storage.getKey('apiFieldMappings').then((mappings) => {
+      if (mappings) {
+        setApiFieldMappings(mappings as ApiFieldMappings)
+      } else {
+        setApiFieldMappings(defaultApiFieldMappings)
+      }
+    })
     chrome.storage.local.get(['pendingQuote'], (result) => {
       if (result.pendingQuote) {
         const formattedQuote = `> ${result.pendingQuote}\n\n`
@@ -70,6 +103,38 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
       }
     })
   }, [])
+
+  useEffect(() => {
+    if (refreshHash > 0 && !quoteProcessed) {
+      fetchPageInfo()
+    }
+  }, [refreshHash, quoteProcessed])
+
+  useEffect(() => {
+    if (hasSubmitted || error) {
+      scrollContainerRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [hasSubmitted, error])
+
+  const handleCheckboxChange = (type: 'read' | 'quote' | 'til', checked: boolean) => {
+    setRead(false)
+    setIsQuote(false)
+    setIsTil(false)
+
+    if (checked) {
+      switch (type) {
+        case 'read':
+          setRead(true)
+          break
+        case 'quote':
+          setIsQuote(true)
+          break
+        case 'til':
+          setIsTil(true)
+          break
+      }
+    }
+  }
 
   const fetchPageInfo = () => {
     setError(false)
@@ -100,32 +165,6 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
     setRefreshHash(refreshHash + 1)
   }
 
-  useEffect(() => {
-    if (refreshHash > 0 && !quoteProcessed) {
-      fetchPageInfo()
-    }
-  }, [refreshHash, quoteProcessed])
-
-  const handleCheckboxChange = (type: 'read' | 'quote' | 'til', checked: boolean) => {
-    setRead(false)
-    setIsQuote(false)
-    setIsTil(false)
-
-    if (checked) {
-      switch (type) {
-        case 'read':
-          setRead(true)
-          break
-        case 'quote':
-          setIsQuote(true)
-          break
-        case 'til':
-          setIsTil(true)
-          break
-      }
-    }
-  }
-
   const onSubmit = () => {
     setHasSubmitted(false)
     setErrorMessage(undefined)
@@ -151,23 +190,28 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
           return Promise.reject(new Error('Missing API configuration. Please check settings.'))
         }
 
+        const requestBody: { [key: string]: any } = {}
+        requestBody[apiFieldMappings.title] = pageTitle
+        requestBody[apiFieldMappings.link] = pageLink
+        requestBody[apiFieldMappings.author] = author
+        if (estimatedTime !== undefined) {
+          requestBody[apiFieldMappings.estimated_time] = estimatedTime
+        }
+        requestBody[apiFieldMappings.is_quote] = isQuote
+        requestBody[apiFieldMappings.is_til] = isTil
+        requestBody[apiFieldMappings.tags] = tagString
+          ? tagString.split(',').map((tag) => tag.trim())
+          : []
+        requestBody[apiFieldMappings.read] = read
+        requestBody[apiFieldMappings.notes] = notes
+
         return fetch(apiUrl as string, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            title: pageTitle,
-            link: pageLink,
-            author,
-            estimated_time: estimatedTime,
-            is_quote: isQuote,
-            is_til: isTil,
-            tags: tagString ? tagString.split(',').map((tag) => tag.trim()) : [],
-            read,
-            notes,
-          }),
+          body: JSON.stringify(requestBody),
         })
       })
       .then((response) => {
@@ -209,7 +253,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
             <Background.ContourMapSVG size={1000} />
           </Background.Surface>
 
-          <main style={{ marginLeft: 8, marginRight: 8 }}>
+          <main style={{ marginLeft: 8, marginRight: 8, marginBottom: 16 }}>
             <Core.Typography
               variant="h6"
               component="div"
@@ -236,7 +280,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
               sx={{
                 position: 'absolute',
                 top: 8,
-                right: 16,
+                right: 24,
                 p: 1,
                 minWidth: '0',
                 borderRadius: '50%',
@@ -256,10 +300,11 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
             <Core.Card
               elevation={1}
               sx={{
+                ml: 1,
                 mt: 4,
                 p: 2,
+                mr: 2,
                 position: 'relative',
-                margin: 'auto',
               }}
             >
               <Core.Typography
@@ -280,6 +325,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
               </Core.Typography>
               <Core.Button
                 variant="outlined"
+                size="small"
                 onClick={handleRefresh}
                 sx={{
                   position: 'absolute',
@@ -300,6 +346,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                       setPageLink(event.target.value)
                     }
                     fullWidth
+                    size="small"
                   />
                 </Core.Grid>
                 <Core.Grid xs={12} item>
@@ -312,6 +359,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                       setPageTitle(event.target.value)
                     }
                     fullWidth
+                    size="small"
                   />
                 </Core.Grid>
                 <Core.Grid xs={12} item>
@@ -324,6 +372,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                       setAuthor(event.target.value)
                     }
                     fullWidth
+                    size="small"
                   />
                 </Core.Grid>
                 {!isQuote && !isTil && (
@@ -337,6 +386,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                         setPageReadingTime(event.target.value)
                       }
                       fullWidth
+                      size="small"
                     />
                   </Core.Grid>
                 )}
@@ -350,6 +400,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                     }
                     helperText="Separate tags with commas"
                     fullWidth
+                    size="small"
                   />
                 </Core.Grid>
                 <Core.Grid xs={12} item>
@@ -382,7 +433,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                       }
                       label="Has read"
                     />
-                    <Core.Box sx={{ mx: 2 }}></Core.Box>
+                    <Core.Box sx={{ mx: 1 }}></Core.Box>
                     <Core.FormControlLabel
                       control={
                         <Core.Checkbox
@@ -393,7 +444,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                       }
                       label="Is Quote"
                     />
-                    <Core.Box sx={{ mx: 2 }}></Core.Box>
+                    <Core.Box sx={{ mx: 1 }}></Core.Box>
                     <Core.FormControlLabel
                       control={
                         <Core.Checkbox
@@ -406,11 +457,12 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                     />
                   </Core.Box>
                 </Core.Grid>
-                <Core.Grid xs={12} item sx={{ mt: 3 }}>
+                <Core.Grid xs={12} item sx={{ mt: 1 }}>
                   <Core.Button
                     type="submit"
                     variant="contained"
                     color="primary"
+                    size="small"
                     onClick={onSubmit}
                     sx={{
                       position: 'absolute',
@@ -424,8 +476,9 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
               </Core.Grid>
             </Core.Card>
             {error && (
-              <Core.Grid xs={12} item sx={{ mt: 3, mx: 3 }}>
+              <Core.Grid xs={12} item sx={{ m: 3 }}>
                 <Core.Alert
+                  ref={scrollContainerRef}
                   variant="outlined"
                   severity="error"
                   color="error"
@@ -437,8 +490,9 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
             )}
 
             {hasSubmitted && (
-              <Core.Grid xs={12} item sx={{ mt: 3, mx: 3 }}>
+              <Core.Grid xs={12} item sx={{ m: 3 }}>
                 <Core.Alert
+                  ref={scrollContainerRef}
                   variant="outlined"
                   severity="success"
                   color="success"
