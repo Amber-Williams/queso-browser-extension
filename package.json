@@ -1,7 +1,7 @@
 {
   "name": "queso",
   "displayName": "Queso | Affineur apps",
-  "version": "0.0.8",
+  "version": "1.0.0",
   "author": "amber williams <https://github.com/amber-williams>",
   "description": "Queso - a browser extension that works within the Affienur apps ecosystem.",
   "type": "module",
