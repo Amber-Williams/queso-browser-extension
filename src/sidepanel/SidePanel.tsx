@@ -48,8 +48,8 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   const [apiFieldMappings, setApiFieldMappings] =
     useState<ApiFieldMappings>(defaultApiFieldMappings)
 
-  // Move the URL and author fetching logic to its own function
-  const fetchUrlAndAuthor = (tabId: number) => {
+  // Move the URL, author, and reading time fetching logic to its own function
+  const fetchPageMetadata = (tabId: number) => {
     chrome.tabs.sendMessage(tabId, { action: 'getUrl' }, (response) => {
       if (response && response.data) {
         setPageLink(response.data)
@@ -63,6 +63,14 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
         setAuthor(response.data)
       } else {
         setAuthor('')
+      }
+    })
+
+    chrome.tabs.sendMessage(tabId, { action: 'getReadTime' }, (response) => {
+      if (response && response.data && isNaN(Number(response.data)) === false) {
+        setPageReadingTime(response.data.toString())
+      } else {
+        setPageReadingTime(undefined)
       }
     })
   }
@@ -91,8 +99,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
           if (tabs[0].id === undefined) {
             return
           }
-          // Use the shared function instead of duplicating code
-          fetchUrlAndAuthor(tabs[0].id)
+          fetchPageMetadata(tabs[0].id)
         })
 
         chrome.storage.local.remove(['pendingQuote'])
@@ -152,8 +159,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
           }
         })
 
-        // Use the shared function instead of duplicating code
-        fetchUrlAndAuthor(tabs[0].id)
+        fetchPageMetadata(tabs[0].id)
       }
     })
   }
@@ -194,7 +200,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
         requestBody[apiFieldMappings.title] = pageTitle
         requestBody[apiFieldMappings.link] = pageLink
         requestBody[apiFieldMappings.author] = author
-        if (estimatedTime !== undefined) {
+        if (estimatedTime !== undefined && !isTil && !isQuote) {
           requestBody[apiFieldMappings.estimated_time] = estimatedTime
         }
         requestBody[apiFieldMappings.is_quote] = isQuote
