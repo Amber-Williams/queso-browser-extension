@@ -203,6 +203,7 @@ export const Options = () => {
                       setApiToken(event.target.value)
                     }
                     fullWidth
+                    type="password"
                   />
                 </Core.Grid>
                 <Core.Grid xs={12} item>
