@@ -7,10 +7,16 @@
   "type": "module",
   "license": "MIT",
   "keywords": [
+    "bookmarks",
+    "bookmarks manager",
+    "read-it-later",
+    "markdown",
     "chrome-extension",
-    "react",
-    "vite",
-    "create-chrome-ext"
+    "note-taking",
+    "productivity",
+    "knowledge-base",
+    "notes-app",
+    "notes"
   ],
   "engines": {
     "node": ">=18.19.0"
