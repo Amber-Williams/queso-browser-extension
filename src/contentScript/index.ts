@@ -1,5 +1,7 @@
 import TurndownService from 'turndown'
 
+import tablesPlugin from './md-tables-plugin'
+
 const DEFAULT_READING_SPEED = 250
 const SECONDS_PER_IMAGE = 4
 
@@ -163,6 +165,45 @@ function getReadTime(): number {
   }
 
   return estimateReadTime(options)
+}
+
+function getSnapshot(): string {
+  try {
+    const docClone = document.cloneNode(true) as Document
+
+    const scriptsAndStyles = docClone.querySelectorAll('script, style')
+    scriptsAndStyles.forEach((element) => element.remove())
+
+    let contentElement =
+      docClone.querySelector('article') ||
+      docClone.querySelector('main') ||
+      docClone.querySelector('[role="main"]') ||
+      docClone.querySelector('.content') ||
+      docClone.querySelector('#content') ||
+      docClone.querySelector('.post') ||
+      docClone.querySelector('.entry') ||
+      docClone.body
+
+    if (!contentElement) {
+      contentElement = docClone.body
+    }
+
+    const turndownService = new TurndownService({
+      headingStyle: 'atx',
+      codeBlockStyle: 'fenced',
+      bulletListMarker: '-',
+      hr: '---',
+    })
+
+    tablesPlugin(turndownService as any)
+
+    const markdown = turndownService.turndown(contentElement.innerHTML)
+
+    return markdown
+  } catch (error) {
+    console.error('Error converting HTML to markdown:', error)
+    return document.body.innerText || ''
+  }
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
