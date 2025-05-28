@@ -1,6 +1,7 @@
 import { Background, Core, Theme } from '@mb3r/component-library'
 import { useEffect, useState } from 'react'
 
+import * as apiUtil from './../util/api'
 import * as auth from './../util/auth'
 import * as storage from './../util/storage'
 
@@ -13,44 +14,9 @@ export const Options = () => {
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [showApiFieldMappings, setShowApiFieldMappings] = useState(false)
 
-  interface ApiFieldMappings {
-    title: string
-    link: string
-    author: string
-    estimated_time: string
-    is_quote: string
-    is_til: string
-    tags: string
-    read: string
-    notes: string
-  }
-
-  const defaultApiFieldMappings: ApiFieldMappings = {
-    title: 'title',
-    link: 'link',
-    author: 'author',
-    estimated_time: 'estimated_time',
-    is_quote: 'is_quote',
-    is_til: 'is_til',
-    read: 'read',
-    tags: 'tags',
-    notes: 'notes',
-  }
-
-  const apiFieldDataTypes: Record<keyof ApiFieldMappings, string> = {
-    title: 'string',
-    link: 'string',
-    author: 'string',
-    estimated_time: 'integer',
-    is_quote: 'boolean',
-    is_til: 'boolean',
-    tags: 'string[]',
-    read: 'boolean',
-    notes: 'string',
-  }
-
-  const [apiFieldMappings, setApiFieldMappings] =
-    useState<ApiFieldMappings>(defaultApiFieldMappings)
+  const [apiFieldMappings, setApiFieldMappings] = useState<apiUtil.ApiFieldMappings>(
+    apiUtil.defaultApiFieldMappings,
+  )
 
   useEffect(() => {
     auth.getAuthTokens()
@@ -74,7 +40,7 @@ export const Options = () => {
     })
     storage.getKey('apiFieldMappings').then((mappings) => {
       if (mappings) {
-        setApiFieldMappings(mappings as ApiFieldMappings)
+        setApiFieldMappings(mappings as apiUtil.ApiFieldMappings)
       }
     })
   }, [])
@@ -275,29 +241,31 @@ export const Options = () => {
                       Used to rename fields sent to the readings API.
                     </Core.Typography>
                     <Core.Grid container spacing={2}>
-                      {(Object.keys(defaultApiFieldMappings) as Array<keyof ApiFieldMappings>).map(
-                        (key) => (
-                          <Core.Grid xs={12} sm={6} item key={key}>
-                            <Core.TextField
-                              value={apiFieldMappings[key]}
-                              label={`${key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')} [${apiFieldDataTypes[key]}]`}
-                              placeholder={`Default: ${defaultApiFieldMappings[key]}`}
-                              variant="outlined"
-                              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                                setApiFieldMappings((prev) => ({
-                                  ...prev,
-                                  [key]:
-                                    event.target.value.trim() === ''
-                                      ? defaultApiFieldMappings[key]
-                                      : event.target.value,
-                                }))
-                              }
-                              fullWidth
-                              size="small"
-                            />
-                          </Core.Grid>
-                        ),
-                      )}
+                      {(
+                        Object.keys(apiUtil.defaultApiFieldMappings) as Array<
+                          keyof apiUtil.ApiFieldMappings
+                        >
+                      ).map((key) => (
+                        <Core.Grid xs={12} sm={6} item key={key}>
+                          <Core.TextField
+                            value={apiFieldMappings[key]}
+                            label={`${key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')} [${apiUtil.apiFieldDataTypes[key]}]`}
+                            placeholder={`Default: ${apiUtil.defaultApiFieldMappings[key]}`}
+                            variant="outlined"
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                              setApiFieldMappings((prev) => ({
+                                ...prev,
+                                [key]:
+                                  event.target.value.trim() === ''
+                                    ? apiUtil.defaultApiFieldMappings[key]
+                                    : event.target.value,
+                              }))
+                            }
+                            fullWidth
+                            size="small"
+                          />
+                        </Core.Grid>
+                      ))}
                     </Core.Grid>
                   </Core.Grid>
                 )}

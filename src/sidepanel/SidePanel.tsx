@@ -1,6 +1,7 @@
 import { Background, Core, Icons, Theme } from '@mb3r/component-library'
 import { useEffect, useRef, useState } from 'react'
 
+import * as apiUtil from './../util/api'
 import * as auth from './../util/auth'
 import * as storage from './../util/storage'
 import SidePanelMoreMenu, { useSidePanelMoreMenu } from './SidePanelMoreMenu'
@@ -21,34 +22,14 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   const [isQuote, setIsQuote] = useState(false)
   const [isTil, setIsTil] = useState(false)
   const [quoteProcessed, setQuoteProcessed] = useState(false)
+  const [snapshot, setSnapshot] = useState<string>('')
+  const [snapshotExpanded, setSnapshotExpanded] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
-  interface ApiFieldMappings {
-    title: string
-    link: string
-    author: string
-    estimated_time: string
-    is_quote: string
-    is_til: string
-    tags: string
-    read: string
-    notes: string
-  }
 
-  const defaultApiFieldMappings: ApiFieldMappings = {
-    title: 'title',
-    link: 'link',
-    author: 'author',
-    estimated_time: 'estimated_time',
-    is_quote: 'is_quote',
-    is_til: 'is_til',
-    tags: 'tags',
-    read: 'read',
-    notes: 'notes',
-  }
-  const [apiFieldMappings, setApiFieldMappings] =
-    useState<ApiFieldMappings>(defaultApiFieldMappings)
+  const [apiFieldMappings, setApiFieldMappings] = useState<apiUtil.ApiFieldMappings>(
+    apiUtil.defaultApiFieldMappings,
+  )
 
-  // Move the URL, author, and reading time fetching logic to its own function
   const fetchPageMetadata = (tabId: number) => {
     chrome.tabs.sendMessage(tabId, { action: 'getUrl' }, (response) => {
       if (response && response.data) {
@@ -73,6 +54,14 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
         setPageReadingTime(undefined)
       }
     })
+
+    chrome.tabs.sendMessage(tabId, { action: 'getSnapshot' }, (response) => {
+      if (response && response.data) {
+        setSnapshot(response.data)
+      } else {
+        setSnapshot('')
+      }
+    })
   }
 
   useEffect(() => {
@@ -82,9 +71,9 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   useEffect(() => {
     storage.getKey('apiFieldMappings').then((mappings) => {
       if (mappings) {
-        setApiFieldMappings(mappings as ApiFieldMappings)
+        setApiFieldMappings(mappings as apiUtil.ApiFieldMappings)
       } else {
-        setApiFieldMappings(defaultApiFieldMappings)
+        setApiFieldMappings(apiUtil.defaultApiFieldMappings)
       }
     })
     chrome.storage.local.get(['pendingQuote'], (result) => {
@@ -210,6 +199,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
           : []
         requestBody[apiFieldMappings.read] = read
         requestBody[apiFieldMappings.notes] = notes
+        requestBody[apiFieldMappings.snapshot] = snapshot
 
         return fetch(apiUrl as string, {
           method: 'POST',
@@ -409,6 +399,55 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                     size="small"
                   />
                 </Core.Grid>
+                {!isQuote && !isTil && snapshot && (
+                  <Core.Grid xs={12} item>
+                    <Core.Box
+                      sx={{ border: '1px solid #333', borderRadius: 1, overflow: 'hidden' }}
+                    >
+                      <Core.Button
+                        variant="text"
+                        onClick={() => setSnapshotExpanded(!snapshotExpanded)}
+                        sx={{
+                          width: '100%',
+                          justifyContent: 'space-between',
+                          textTransform: 'none',
+                          p: 2,
+                          bgcolor: '#1a1a1a',
+                          color: '#fff',
+                          '&:hover': {
+                            bgcolor: '#2a2a2a',
+                          },
+                        }}
+                        endIcon={
+                          snapshotExpanded ? <Icons.KeyboardArrowUp /> : <Icons.KeyboardArrowDown />
+                        }
+                      >
+                        Page Snapshot
+                      </Core.Button>
+                      <Core.Collapse in={snapshotExpanded}>
+                        <Core.Box sx={{ p: 2, bgcolor: '#0a0a0a' }}>
+                          <Core.TextField
+                            value={snapshot}
+                            label="Snapshot (Beta)"
+                            variant="outlined"
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                              setSnapshot(event.target.value)
+                            }
+                            multiline
+                            rows={10}
+                            fullWidth
+                            sx={{
+                              '& .MuiInputBase-input': {
+                                fontSize: '0.875rem',
+                                fontFamily: 'monospace',
+                              },
+                            }}
+                          />
+                        </Core.Box>
+                      </Core.Collapse>
+                    </Core.Box>
+                  </Core.Grid>
+                )}
                 <Core.Grid xs={12} item>
                   <Core.TextField
                     value={notes}

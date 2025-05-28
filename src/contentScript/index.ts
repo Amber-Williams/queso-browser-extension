@@ -1,3 +1,5 @@
+import TurndownService from 'turndown'
+
 const DEFAULT_READING_SPEED = 250
 const SECONDS_PER_IMAGE = 4
 
@@ -172,5 +174,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ data: getAuthor() })
   } else if (request.action === 'getReadTime') {
     sendResponse({ data: getReadTime() })
+  } else if (request.action === 'getSnapshot') {
+    sendResponse({ data: getSnapshot() })
   }
 })
