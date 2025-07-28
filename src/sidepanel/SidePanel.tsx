@@ -24,6 +24,7 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
   const [quoteProcessed, setQuoteProcessed] = useState(false)
   const [snapshot, setSnapshot] = useState<string>('')
   const [snapshotExpanded, setSnapshotExpanded] = useState(false)
+  const [storeSnapshot, setStoreSnapshot] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const [apiFieldMappings, setApiFieldMappings] = useState<apiUtil.ApiFieldMappings>(
@@ -199,7 +200,9 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
           : []
         requestBody[apiFieldMappings.read] = read
         requestBody[apiFieldMappings.notes] = notes
-        requestBody[apiFieldMappings.snapshot] = snapshot
+        if (storeSnapshot) {
+          requestBody[apiFieldMappings.snapshot] = snapshot
+        }
 
         return fetch(apiUrl as string, {
           method: 'POST',
@@ -404,26 +407,51 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                     <Core.Box
                       sx={{ border: '1px solid #333', borderRadius: 1, overflow: 'hidden' }}
                     >
-                      <Core.Button
-                        variant="text"
-                        onClick={() => setSnapshotExpanded(!snapshotExpanded)}
+                      <Core.Box
                         sx={{
-                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
                           justifyContent: 'space-between',
-                          textTransform: 'none',
                           p: 2,
                           bgcolor: '#1a1a1a',
-                          color: '#fff',
-                          '&:hover': {
-                            bgcolor: '#2a2a2a',
-                          },
                         }}
-                        endIcon={
-                          snapshotExpanded ? <Icons.KeyboardArrowUp /> : <Icons.KeyboardArrowDown />
-                        }
                       >
-                        Page Snapshot
-                      </Core.Button>
+                        <Core.Typography
+                          variant="body2"
+                          sx={{
+                            color: '#fff',
+                            fontWeight: 500,
+                          }}
+                        >
+                          Page Snapshot
+                        </Core.Typography>
+                        <Core.Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {storeSnapshot && (
+                            <Icons.KeyboardArrowUp
+                              sx={{
+                                color: '#fff',
+                                fontSize: '1.2rem',
+                                cursor: 'pointer',
+                                transform: snapshotExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s ease-in-out',
+                                '&:hover': {
+                                  color: '#ccc',
+                                },
+                              }}
+                              onClick={() => setSnapshotExpanded(!snapshotExpanded)}
+                            />
+                          )}
+                          <Core.Switch
+                            checked={storeSnapshot}
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                              setSnapshotExpanded(false)
+                              setStoreSnapshot(event.target.checked)
+                            }}
+                            size="small"
+                            color="primary"
+                          />
+                        </Core.Box>
+                      </Core.Box>
                       <Core.Collapse in={snapshotExpanded}>
                         <Core.Box sx={{ p: 2, bgcolor: '#0a0a0a' }}>
                           <Core.TextField
@@ -434,11 +462,11 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
                               setSnapshot(event.target.value)
                             }
                             multiline
-                            rows={10}
+                            rows={20}
                             fullWidth
                             sx={{
                               '& .MuiInputBase-input': {
-                                fontSize: '0.875rem',
+                                fontSize: '0.6rem',
                                 fontFamily: 'monospace',
                               },
                             }}
