@@ -1,4 +1,6 @@
 export interface ApiFieldMappings {
+  id: string
+  date_created: string
   title: string
   link: string
   author: string
@@ -12,6 +14,8 @@ export interface ApiFieldMappings {
 }
 
 export const defaultApiFieldMappings: ApiFieldMappings = {
+  id: 'id',
+  date_created: 'date_created',
   title: 'title',
   link: 'link',
   author: 'author',
@@ -25,6 +29,8 @@ export const defaultApiFieldMappings: ApiFieldMappings = {
 }
 
 export const apiFieldDataTypes: Record<keyof ApiFieldMappings, string> = {
+  id: 'integer',
+  date_created: 'datetime',
   title: 'string',
   link: 'string',
   author: 'string',

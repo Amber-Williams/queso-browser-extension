@@ -1,7 +1,7 @@
 {
   "name": "queso",
   "displayName": "Queso | Affineur apps",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "author": "amber williams <https://github.com/amber-williams>",
   "description": "Queso - an advanced bookmark manager",
   "type": "module",

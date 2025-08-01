@@ -32,6 +32,9 @@ export default defineManifest(async (env) => ({
     service_worker: 'src/background/index.ts',
     type: 'module',
   },
+  chrome_url_overrides: {
+    bookmarks: 'bookmarks.html',
+  },
   content_scripts: [
     {
       matches: ['https://*/*'],

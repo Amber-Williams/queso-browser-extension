@@ -32,13 +32,11 @@ const SidePanelMoreMenu = (props: SidePanelMoreMenuType) => {
     >
       <Core.MenuItem
         onClick={() => {
-          storage.getKey('readingsUi').then((link) => {
-            chrome.tabs.create({ url: link as string })
-            handleClose()
-          })
+          chrome.tabs.create({ url: `chrome-extension://${chrome.runtime.id}/bookmarks.html` })
+          handleClose()
         }}
       >
-        Readings
+        Bookmarks
       </Core.MenuItem>
       <Core.MenuItem
         onClick={() => {
