@@ -1,13 +1,11 @@
-# Queso
-
 <p align="center">
-    <img alt="Extension sidebar screenshot" src="https://github.com/Amber-Williams/queso-browser-extension/blob/main/assets/logo.gif" width="700" />
+    <img alt="Extension sidebar screenshot" src="https://github.com/Amber-Williams/queso-browser-extension/blob/main/assets/logo.gif" width="400"/>
 </p>
 
-Queso is a browser extension that serves as an advanced bookmark manager for your reading and research workflow. It allows you to bookmark articles, save quotes, and add notes to your bookmarks. All data is sent only to the user's configured server of choice, and never shared with third parties.
+Queso browser extension is an advanced bookmark manager. It allows you to bookmark articles, save quotes, and add notes to your bookmarks.
 
 FEATURES:
-
+- All data is sent only to the user's configured server of choice, and never shared with third parties.
 - Save articles for reading later with auto-populated fields such as estimated reading time
 - Save web clippings any highlighted text using right click
 - Organize content with custom tags
@@ -15,9 +13,9 @@ FEATURES:
 - Make add new bookmarks via side panel or popup
 - 🆕 Convenient bookmarks page to manage your reading list
 
-<p align="center">
-    <video src="https://github.com/Amber-Williams/queso-browser-extension/blob/main/assets/bookmarks-page.mp4" width="700"></video>
-</p>
+https://github.com/user-attachments/assets/9db63e16-b508-4cad-bcbe-cc602993d995
+
+
 <p align="center">
     <img alt="Extension sidebar screenshot"  src="https://github.com/Amber-Williams/queso-browser-extension/blob/main/assets/sidebar.png" width="500"/>
 </p>
