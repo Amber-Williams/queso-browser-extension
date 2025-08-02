@@ -1,5 +1,6 @@
-import { Background, Core, Icons, Theme } from '@mb3r/component-library'
+import { Core, Icons, Theme } from '@mb3r/component-library'
 import { useEffect, useState } from 'react'
+import { useDebounce } from 'use-debounce'
 
 import * as apiUtil from '../util/api'
 import * as auth from '../util/auth'
@@ -26,6 +27,7 @@ export const BookmarksPage = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 500)
   const [sortBy, setSortBy] = useState('date_created')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [availableTags, setAvailableTags] = useState<string[]>([])
@@ -53,7 +55,15 @@ export const BookmarksPage = () => {
 
   useEffect(() => {
     fetchBookmarks()
-  }, [currentPage, searchQuery, sortBy, sortOrder, selectedTags, apiFieldMappings, statusFilter])
+  }, [
+    currentPage,
+    debouncedSearchQuery,
+    sortBy,
+    sortOrder,
+    selectedTags,
+    apiFieldMappings,
+    statusFilter,
+  ])
 
   useEffect(() => {
     fetchCount()
