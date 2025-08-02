@@ -9,8 +9,9 @@ FEATURES:
 - Save articles for reading later with auto-populated fields such as estimated reading time
 - Save web clippings any highlighted text using right click
 - Organize content with custom tags
-- Add annotations to bookmarks
-- Make add new bookmarks via side panel or popup
+- Add your personal notes attached to each bookmark
+- Ability to save article snapshot in Markdown
+- Add new bookmarks via side panel or popup
 - 🆕 Convenient bookmarks page to manage your reading list
 
 https://github.com/user-attachments/assets/9db63e16-b508-4cad-bcbe-cc602993d995
