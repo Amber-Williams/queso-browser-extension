@@ -31,6 +31,7 @@ export const BookmarksPage = () => {
   const [availableTags, setAvailableTags] = useState<string[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [tagToItemsMap, setTagToItemsMap] = useState<Record<string, string[]>>({})
+  const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const [apiFieldMappings, setApiFieldMappings] = useState<apiUtil.ApiFieldMappings>(
     apiUtil.defaultApiFieldMappings,
@@ -52,11 +53,11 @@ export const BookmarksPage = () => {
 
   useEffect(() => {
     fetchBookmarks()
-  }, [currentPage, searchQuery, sortBy, sortOrder, selectedTags, apiFieldMappings])
+  }, [currentPage, searchQuery, sortBy, sortOrder, selectedTags, apiFieldMappings, statusFilter])
 
   useEffect(() => {
     fetchCount()
-  }, [apiFieldMappings])
+  }, [apiFieldMappings, statusFilter])
 
   useEffect(() => {
     fetchAvailableTags()
@@ -122,13 +123,28 @@ export const BookmarksPage = () => {
         })
         queryString += `&page=1`
 
-        console.log(filteredItemIdsTotal)
-        console.log(startIndex, endIndex)
-        console.log(filteredItemIds)
-
         setTotalCount(filteredItemIdsTotal.length)
       } else {
         queryString += `&page=${currentPage}`
+      }
+
+      if (statusFilter !== 'all') {
+        switch (statusFilter) {
+          case 'unread':
+            queryString += `&filter[${apiFieldMappings.read}][_eq]=false`
+            queryString += `&filter[${apiFieldMappings.is_quote}][_eq]=false`
+            queryString += `&filter[${apiFieldMappings.is_til}][_eq]=false`
+            break
+          case 'read':
+            queryString += `&filter[${apiFieldMappings.read}][_eq]=true`
+            break
+          case 'quote':
+            queryString += `&filter[${apiFieldMappings.is_quote}][_eq]=true`
+            break
+          case 'til':
+            queryString += `&filter[${apiFieldMappings.is_til}][_eq]=true`
+            break
+        }
       }
 
       const response = await fetch(`${apiUrl}?${queryString}`, {
@@ -143,6 +159,7 @@ export const BookmarksPage = () => {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`)
       }
       const data: ApiResponse = await response.json()
+
       setBookmarks(data?.data || [])
     } catch (err) {
       console.error('Error fetching bookmarks:', err)
@@ -164,7 +181,28 @@ export const BookmarksPage = () => {
         return
       }
 
-      const response = await fetch(`${apiUrl}?aggregate[countDistinct]=${apiFieldMappings.id}`, {
+      let queryString = `aggregate[countDistinct]=${apiFieldMappings.id}`
+
+      if (statusFilter !== 'all') {
+        switch (statusFilter) {
+          case 'unread':
+            queryString += `&filter[${apiFieldMappings.read}][_eq]=false`
+            queryString += `&filter[${apiFieldMappings.is_quote}][_eq]=false`
+            queryString += `&filter[${apiFieldMappings.is_til}][_eq]=false`
+            break
+          case 'read':
+            queryString += `&filter[${apiFieldMappings.read}][_eq]=true`
+            break
+          case 'quote':
+            queryString += `&filter[${apiFieldMappings.is_quote}][_eq]=true`
+            break
+          case 'til':
+            queryString += `&filter[${apiFieldMappings.is_til}][_eq]=true`
+            break
+        }
+      }
+
+      const response = await fetch(`${apiUrl}?${queryString}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -277,16 +315,27 @@ export const BookmarksPage = () => {
     fetchBookmarks()
   }
 
-  const handleTagFilter = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter((t) => t !== tag))
-    } else {
-      setSelectedTags([...selectedTags, tag])
-    }
+  const handleStatusFilter = (status: string) => {
+    setStatusFilter(status)
     setCurrentPage(1)
-    if (selectedTags.length === 0) {
+    if (status === 'all') {
       fetchCount()
     }
+  }
+
+  const handleTagFilter = (tag: string) => {
+    let newSelectedTags = [...selectedTags]
+    if (selectedTags.includes(tag)) {
+      newSelectedTags = selectedTags.filter((t) => t !== tag)
+    } else {
+      newSelectedTags.push(tag)
+    }
+
+    if (newSelectedTags.length === 0) {
+      fetchCount()
+    }
+    setSelectedTags(newSelectedTags)
+    setCurrentPage(1)
   }
 
   const openReadingLink = (item: BookmarkItem) => {
@@ -349,7 +398,7 @@ export const BookmarksPage = () => {
                 pb: 2,
               }}
             >
-              MY READINGS ({totalCount})
+              BOOKMARKS ({totalCount})
             </Core.Typography>
 
             {/* Search and Controls */}
@@ -412,6 +461,22 @@ export const BookmarksPage = () => {
                     >
                       <Core.MenuItem value="desc">Desc</Core.MenuItem>
                       <Core.MenuItem value="asc">Asc</Core.MenuItem>
+                    </Core.Select>
+                  </Core.FormControl>
+                </Core.Grid>
+                <Core.Grid xs={12} md={1.5} item>
+                  <Core.FormControl fullWidth size="small">
+                    <Core.InputLabel>Status</Core.InputLabel>
+                    <Core.Select
+                      value={statusFilter}
+                      label="Status"
+                      onChange={(event) => handleStatusFilter(event.target.value)}
+                    >
+                      <Core.MenuItem value="all">All</Core.MenuItem>
+                      <Core.MenuItem value="unread">Unread</Core.MenuItem>
+                      <Core.MenuItem value="read">Read</Core.MenuItem>
+                      <Core.MenuItem value="quote">Quote</Core.MenuItem>
+                      <Core.MenuItem value="til">TIL</Core.MenuItem>
                     </Core.Select>
                   </Core.FormControl>
                 </Core.Grid>
@@ -514,7 +579,10 @@ export const BookmarksPage = () => {
               >
                 {bookmarks.map((item, index) => (
                   <div key={item.id || index}>
-                    <Core.CardContent sx={{ px: 4, py: 2 }} onClick={() => openReadingLink(item)}>
+                    <Core.CardContent
+                      sx={{ px: 4, py: 2, cursor: 'pointer', '&:hover': { bgcolor: '#1a1a1a' } }}
+                      onClick={() => openReadingLink(item)}
+                    >
                       <Core.Grid container spacing={2} alignItems="center">
                         <Core.Grid xs={12} md={8} item>
                           <Core.Typography
@@ -523,77 +591,91 @@ export const BookmarksPage = () => {
                             sx={{
                               color: '#F8FAF6',
                               fontWeight: 500,
-                              mb: 1,
                               cursor: 'pointer',
+                              mb: 3,
                               '&:hover': { color: '#4fc3f7' },
                             }}
-                            onClick={() => openReadingLink(item)}
                           >
                             {getDisplayValue(item, 'title') || 'Untitled'}
                           </Core.Typography>
 
-                          {Array.isArray(getDisplayValue(item, 'tags')) &&
-                            getDisplayValue(item, 'tags').length > 0 && (
-                              <Core.Box
-                                sx={{
-                                  display: 'flex',
-                                  gap: 0.5,
-                                  flexWrap: 'wrap',
+                          <Core.Box
+                            sx={{
+                              display: 'flex',
+                              gap: 0.5,
+                              flexWrap: 'wrap',
+                              mb: 1,
+                            }}
+                          >
+                            {getDisplayValue(item, 'is_quote') && (
+                              <Core.Chip
+                                label="Quote"
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleStatusFilter('quote')
                                 }}
-                              >
-                                {' '}
-                                {getDisplayValue(item, 'is_quote') && (
-                                  <Core.Chip
-                                    label="Quote"
-                                    size="small"
-                                    color="primary"
-                                    variant="outlined"
-                                  />
-                                )}
-                                {getDisplayValue(item, 'is_til') && (
-                                  <Core.Chip
-                                    label="TIL"
-                                    size="small"
-                                    color="info"
-                                    variant="outlined"
-                                  />
-                                )}
-                                {!getDisplayValue(item, 'read') &&
-                                  !getDisplayValue(item, 'is_til') &&
-                                  !getDisplayValue(item, 'is_quote') && (
-                                    <>
-                                      <Core.Chip
-                                        label="Unread"
-                                        size="small"
-                                        color="warning"
-                                        variant="outlined"
-                                      />
-                                      {getDisplayValue(item, 'estimated_time') && (
-                                        <Core.Chip
-                                          label={`${getDisplayValue(item, 'estimated_time')} min`}
-                                          size="small"
-                                          variant="outlined"
-                                        />
-                                      )}
-                                    </>
-                                  )}
-                                {(getDisplayValue(item, 'tags') as string[]).map(
-                                  (tag: string, tagIndex: number) => (
-                                    <Core.Chip
-                                      key={tagIndex}
-                                      label={tag}
-                                      size="small"
-                                      sx={{ fontSize: '0.7rem' }}
-                                    />
-                                  ),
-                                )}
-                              </Core.Box>
+                              />
                             )}
+                            {getDisplayValue(item, 'is_til') && (
+                              <Core.Chip
+                                label="TIL"
+                                size="small"
+                                color="info"
+                                variant="outlined"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleStatusFilter('til')
+                                }}
+                              />
+                            )}
+                            {!getDisplayValue(item, 'read') &&
+                              !getDisplayValue(item, 'is_til') &&
+                              !getDisplayValue(item, 'is_quote') && (
+                                <>
+                                  <Core.Chip
+                                    label="Unread"
+                                    size="small"
+                                    color="warning"
+                                    variant="outlined"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleStatusFilter('unread')
+                                    }}
+                                  />
+                                  {getDisplayValue(item, 'estimated_time') && (
+                                    <Core.Chip
+                                      label={`${getDisplayValue(item, 'estimated_time')} min`}
+                                      size="small"
+                                      variant="outlined"
+                                    />
+                                  )}
+                                </>
+                              )}
+                            {Array.isArray(getDisplayValue(item, 'tags')) &&
+                              getDisplayValue(item, 'tags').length > 0 &&
+                              (getDisplayValue(item, 'tags') as string[]).map(
+                                (tag: string, tagIndex: number) => (
+                                  <Core.Chip
+                                    key={tagIndex}
+                                    label={tag}
+                                    size="small"
+                                    sx={{ fontSize: '0.7rem' }}
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleTagFilter(tag)
+                                    }}
+                                  />
+                                ),
+                              )}
+                          </Core.Box>
 
                           {item.date_created && (
                             <Core.Typography
                               variant="caption"
-                              sx={{ color: '#666', mt: 1, display: 'block' }}
+                              sx={{ color: '#666', display: 'block' }}
                             >
                               {formatDate(item.date_created)}
                               {getDisplayValue(item, 'author') &&
@@ -634,8 +716,8 @@ export const BookmarksPage = () => {
                   No bookmarks found
                 </Core.Typography>
                 <Core.Typography sx={{ color: '#a0a0a0', mb: 2 }}>
-                  {searchQuery || selectedTags.length > 0
-                    ? `No bookmarks match your ${searchQuery ? 'search' : ''}${searchQuery && selectedTags.length > 0 ? ' and ' : ''}${selectedTags.length > 0 ? 'tag filters' : ''}`
+                  {searchQuery || selectedTags.length > 0 || statusFilter !== 'all'
+                    ? 'No bookmarks match your current filters. Try adjusting your search or filters.'
                     : 'Start by adding some bookmarks using the extension popup or sidebar.'}
                 </Core.Typography>
               </Core.Card>
