@@ -1,4 +1,4 @@
-import { Background, Core, Icons, Theme } from '@mb3r/component-library'
+import { Core, Icons, Theme } from '@mb3r/component-library'
 import { useEffect, useRef, useState } from 'react'
 
 import * as apiUtil from './../util/api'
@@ -238,20 +238,19 @@ export const SidePanel = ({ type }: { type: 'sidepanel' | 'popup' }) => {
 
         <div
           style={{
-            height: '100%',
+            height: 'fit-content',
             minHeight: '100vh',
-            width: '100vw',
             position: 'absolute',
             backgroundColor: '#0f1011',
             zIndex: 0,
+            backgroundImage: 'url(/img/bg.svg)',
+            backgroundRepeat: 'repeat',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             minWidth: type === 'popup' ? '300px' : undefined,
             maxWidth: type === 'popup' ? '600px' : undefined,
           }}
         >
-          <Background.Surface>
-            <Background.ContourMapSVG size={1000} />
-          </Background.Surface>
-
           <main style={{ marginLeft: 8, marginRight: 8, marginBottom: 16 }}>
             <Core.Typography
               variant="h6"

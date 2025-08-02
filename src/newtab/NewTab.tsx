@@ -1,4 +1,4 @@
-import { Background, Core, Theme } from '@mb3r/component-library'
+import { Core, Theme } from '@mb3r/component-library'
 import { useEffect, useState } from 'react'
 
 export const NewTab = () => {
@@ -28,18 +28,18 @@ export const NewTab = () => {
 
         <div
           style={{
-            height: '100%',
+            height: 'fit-content',
             minHeight: '100vh',
             width: '100vw',
             position: 'absolute',
             backgroundColor: '#0f1011',
             zIndex: 0,
+            backgroundImage: 'url(/img/bg.svg)',
+            backgroundRepeat: 'repeat',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
           }}
         >
-          <Background.Surface>
-            <Background.ContourMapSVG size={1000} />
-          </Background.Surface>
-
           <main>
             <Core.Typography
               variant="h1"
