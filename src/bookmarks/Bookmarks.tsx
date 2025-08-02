@@ -112,6 +112,7 @@ export const BookmarksPage = () => {
           return
         }
 
+        // TODO: update this to include filter logic by status
         // There's a limit to the number of items that can be fetched via filter[_or]
         // so we fetch the page items only and mock the items for the pagination UI
         const startIndex = (currentPage - 1) * itemsPerPage
@@ -324,11 +325,13 @@ export const BookmarksPage = () => {
   }
 
   const handleTagFilter = (tag: string) => {
+    const _tag = tag.toLowerCase()
     let newSelectedTags = [...selectedTags]
-    if (selectedTags.includes(tag)) {
-      newSelectedTags = selectedTags.filter((t) => t !== tag)
+
+    if (selectedTags.includes(_tag)) {
+      newSelectedTags = selectedTags.filter((t) => t !== _tag)
     } else {
-      newSelectedTags.push(tag)
+      newSelectedTags.push(_tag)
     }
 
     if (newSelectedTags.length === 0) {
@@ -631,6 +634,7 @@ export const BookmarksPage = () => {
                                 }}
                               />
                             )}
+
                             {!getDisplayValue(item, 'read') &&
                               !getDisplayValue(item, 'is_til') &&
                               !getDisplayValue(item, 'is_quote') && (
@@ -654,13 +658,22 @@ export const BookmarksPage = () => {
                                   )}
                                 </>
                               )}
+                            {/* TODO: add onclick to the github repo chip */}
+                            {getDisplayValue(item, 'link').includes('github.com') && (
+                              <Core.Chip
+                                label="Github repo"
+                                size="small"
+                                color="info"
+                                variant="outlined"
+                              />
+                            )}
                             {Array.isArray(getDisplayValue(item, 'tags')) &&
                               getDisplayValue(item, 'tags').length > 0 &&
                               (getDisplayValue(item, 'tags') as string[]).map(
                                 (tag: string, tagIndex: number) => (
                                   <Core.Chip
                                     key={tagIndex}
-                                    label={tag}
+                                    label={tag.toLowerCase()}
                                     size="small"
                                     sx={{ fontSize: '0.7rem' }}
                                     onClick={(e) => {
